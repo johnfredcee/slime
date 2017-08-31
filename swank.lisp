@@ -788,11 +788,9 @@ first."
                      (accept-connection socket :external-format nil
                                                :buffering t)
                   (unless dont-close
-                    (close-socket socket)))))
+                    (send-to-sentinel `(:stop-server :socket ,socket))))))
     (authenticate-client client)
-    (serve-requests (make-connection socket client style))
-    (unless dont-close
-      (send-to-sentinel `(:stop-server :socket ,socket)))))
+    (serve-requests (make-connection socket client style))))
 
 (defun authenticate-client (stream)
   (let ((secret (slime-secret)))
