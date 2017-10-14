@@ -95,7 +95,7 @@
 ;;; TCP Server
 
 (defimplementation preferred-communication-style ()
-  :spawn)
+  nil)
 
 (defimplementation create-socket (host port &key backlog)
   (ccl:make-socket :connect :passive :local-port port
@@ -127,6 +127,16 @@
 
 (defimplementation socket-fd (stream)
   (ccl::ioblock-device (ccl::stream-ioblock stream t)))
+
+(defimplementation wait-for-input (streams &optional timeout)
+  (assert (member timeout '(nil t)))
+  (loop
+   (cond ((check-slime-interrupts) (return :interrupt))
+         (timeout (return (remove-if-not #'listen streams)))
+         (t
+          (let ((ready (remove-if-not #'listen streams)))
+            (if ready (return ready))
+            (sleep 0.1))))))
 
 ;;; Unix signals
 
